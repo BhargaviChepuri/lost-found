@@ -1,13 +1,16 @@
 package com.mss.demo.entity;
 
-import java.sql.Blob;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Date;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.Lob;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,21 +22,28 @@ import lombok.NoArgsConstructor;
 public class Items {
 
 	@Id
-	private int id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int itemId;
 
 	private String itemName;
-
-	private String itemDescription;
-
-	private Blob itemImageUrl;
-
-	private LocalDate createdDate;
-
-	private LocalDateTime  receivedDate;
-
 	private String status;
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date foundDate; // createdDate
 
-	@OneToMany(mappedBy = "item")
-	private List<ClaimHistory> claimHistories;
+	private LocalDateTime receivedDate; // receivedDate
+
+	@Lob
+	private byte[] image;
+
+	private String dominantColor;
+
+	@Lob
+	private String detectedText;
+
+	@PrePersist
+	protected void onCreate() {
+		this.foundDate = new Date(); // Default to current date
+		this.receivedDate = LocalDateTime.now();
+		 }
 
 }
