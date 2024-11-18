@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,16 +18,23 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.mss.demo.entity.ClaimHistory;
+import com.mss.demo.entity.Items;
 import com.mss.demo.entity.ItemsRequest;
+import com.mss.demo.entity.Login;
 import com.mss.demo.entity.User;
+import com.mss.demo.repo.UserRepo;
 import com.mss.demo.service.CloudVisionService;
 
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/api")
 public class FoundObjectController {
 
 	@Autowired
 	private CloudVisionService cloudVisionService;
+	
+	@Autowired
+	private UserRepo userRepository;
 
 	/**
 	 * Endpoint to upload a found object and detect labels using Cloud Vision.
@@ -43,18 +51,6 @@ public class FoundObjectController {
 	}
 
 	/**
-	 * Endpoint to register an admin user.
-	 *
-	 * @param admin The admin login details.
-	 * @return A success message.
-	 */
-
-//	@PostMapping("/login")
-//	public String registerAdmin(@RequestBody Login admin) {
-//		return cloudVisionService.registerAdmin(admin);
-//	}
-//	
-	/**
 	 * Endpoint to register a regular user.
 	 *
 	 * @param user The user registration details.
@@ -64,36 +60,6 @@ public class FoundObjectController {
 	public String registerUser(@RequestBody User user) {
 		return cloudVisionService.registerUser(user);
 	}
-
-	/**
-	 * Endpoint to send a push notification.
-	 *
-	 * @param toToken The recipient's device token.
-	 * @param title   The title of the notification.
-	 * @param body    The body of the notification.
-	 * @return A success message.
-	 */
-	@PostMapping("/send")
-	public ResponseEntity<String> sendNotification(@RequestParam String userId, @RequestParam String title,
-			@RequestParam String body) {
-		// Fetch device token from the database based on userId
-		String deviceToken = getDeviceTokenFromDatabase(userId);
-
-		if (deviceToken == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device token not found");
-		}
-
-		// Call the service class to send the notification
-//		pushNotificationService.sendPushNotification(deviceToken, title, body);
-
-		return ResponseEntity.ok("Notification sent successfully!");
-	}
-
-	private String getDeviceTokenFromDatabase(String userId) {
-		// Logic to fetch the device token from the database based on userId
-		return "user_device_token_from_db";
-	}
-
 
 	/**
 	 * Endpoint to submit an item request.
@@ -122,13 +88,26 @@ public class FoundObjectController {
 	/**
 	 * Endpoint to retrieve user details by user ID.
 	 *
-	 * @param userId The ID of the user.
 	 * @return The details of the user.
 	 */
 
-	@GetMapping("/userDetails/{userId}")
-	public User getUserDetails(@PathVariable int userId) {
-		return cloudVisionService.getUserDetails(userId);
+    @GetMapping("/users")
+    public List<User> getUserDetails(
+        @RequestParam(required = false) String searchTerm, // Search term for username
+        @RequestParam(defaultValue = "0") int page, // Default to page 0 if not provided
+        @RequestParam(defaultValue = "10") int size // Default to page size of 10 if not provided
+    ) {
+        return cloudVisionService.getUserDetails(searchTerm, page, size);
+    }
+
+    @GetMapping("/userDetails")
+     public List<User> getDetails(){
+    	return userRepository.findAll();
+    }
+    
+	@GetMapping("/login")
+	public String getLoginDetails(@RequestBody Login login) {
+		return cloudVisionService.getLoginDetails(login);
 	}
 
 	/**
@@ -161,5 +140,19 @@ public class FoundObjectController {
 	@GetMapping("/itemrequest")
 	public List<ItemsRequest> getItemRequestDetails() {
 		return cloudVisionService.getItemRequestDetails();
+	}
+
+	 @GetMapping("/itemsby")
+	    public List<Items> getItemDetails(
+	        @RequestParam(required = false) String searchTerm, 
+	        @RequestParam(defaultValue = "0") int page, 
+	        @RequestParam(defaultValue = "10") int size
+	    ) {
+	        return cloudVisionService.getItemDetails(searchTerm, page, size);
+	    }
+	
+	@GetMapping("/items")
+	public List<Items> getItems() {
+		return cloudVisionService.getAllItems();
 	}
 }

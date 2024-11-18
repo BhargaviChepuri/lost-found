@@ -8,6 +8,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +26,7 @@ import com.mss.demo.dto.ColorUtils;
 import com.mss.demo.entity.ClaimHistory;
 import com.mss.demo.entity.Items;
 import com.mss.demo.entity.ItemsRequest;
+import com.mss.demo.entity.Login;
 import com.mss.demo.entity.User;
 import com.mss.demo.repo.ClaimHistoryRepository;
 import com.mss.demo.repo.ItemRequestRepo;
@@ -37,7 +41,6 @@ public class CloudVisionService {
 
 	@Autowired
 	private ItemsRepo itemsRepository;
-
 
 	@Autowired
 	private ItemRequestRepo itemRequestRepo;
@@ -122,24 +125,14 @@ public class CloudVisionService {
 	 * @return A success message.
 	 */
 
-//	public String registerAdmin(Login admin) {
-//		if (loginRepository.findByEmail(admin.getEmail()).isPresent()) {
-//			return "Admin already exists!";
-//		}
-//		loginRepository.save(admin);
-//		return "Admin registered successfully!";
-//	}
-
-	/**
-	 * Registers a new user in the system.
-	 *
-	 * @param user The user details.
-	 * @return A success message.
-	 */
-
 	public String registerUser(User user) {
+
+		if (user.getRole() == 0) {
+			return "Access denied";
+		}
 		userRepository.save(user);
 		return "User registered successfully!";
+
 	}
 
 	/**
@@ -156,7 +149,7 @@ public class CloudVisionService {
 			throw new RuntimeException("User with ID " + claimHistory.getUser().getUserId() + " not found.");
 		}
 		claimHistory.setUser(userOpt.get());
-		
+
 		Optional<ItemsRequest> requestOpt = itemRequestRepo.findById(claimHistory.getRequest().getRequestId());
 		if (requestOpt.isEmpty()) {
 			throw new RuntimeException("Request with ID " + claimHistory.getRequest().getRequestId() + " not found.");
@@ -166,8 +159,8 @@ public class CloudVisionService {
 		if (claimHistory.getClaimDate() == null) {
 			claimHistory.setClaimDate(LocalDateTime.now());
 		}
-		
-		if (claimHistory.getVerificationDate()==null) {
+
+		if (claimHistory.getVerificationDate() == null) {
 			claimHistory.setVerificationDate(LocalDateTime.now());
 		}
 
@@ -180,8 +173,17 @@ public class CloudVisionService {
 	 * @param userId The ID of the user.
 	 * @return The User entity if found, or null if not found.
 	 */
-	public User getUserDetails(int userId) {
-		return userRepository.findById(userId).orElse(null);
+	public List<User> getUserDetails(String searchTerm, int page, int size) {
+		Pageable pageable = PageRequest.of(page, size);
+		Page<User> usersPage;
+
+		if (searchTerm == null || searchTerm.isEmpty()) {
+			usersPage = userRepository.findAll(pageable);
+		} else {
+			usersPage = userRepository.findByNameContainingIgnoreCase(searchTerm, pageable);
+		}
+
+		return usersPage.getContent();
 	}
 
 	/**
@@ -253,6 +255,46 @@ public class CloudVisionService {
 	 */
 	public List<ItemsRequest> getItemRequestDetails() {
 		return itemRequestRepo.findAll();
+	}
+
+	public String getLoginDetails(Login login) {
+		String emailId = login.getEmail();
+		String password = login.getPassword();
+
+		List<User> users = userRepository.findByEmailAndRole(emailId, login.getRole());
+
+		if (users.isEmpty()) {
+			return "Credentials not found";
+		} else {
+			User user = users.get(0);
+			if (user.getPassword().equals(password)) {
+				if (user.getRole() == 0) {
+					return "Admin Login successfully";
+				} else if (user.getRole() == 1) {
+					return "User Login successfully";
+				} else {
+					return "Access denied";
+				}
+			} else {
+				return "Incorrect password";
+			}
+		}
+	}
+
+	public List<Items> getAllItems() {
+		return itemsRepository.findAll();
+	}
+
+	public List<Items> getItemDetails(String searchTerm, int page, int size) {
+	    Pageable pageable = PageRequest.of(page, size);  
+	    Page<Items> itemsPage;
+
+	    if (searchTerm == null || searchTerm.isEmpty()) {
+	        itemsPage = itemsRepository.findAll(pageable);
+	    } else {
+	        itemsPage = itemsRepository.findByItemNameContainingIgnoreCase(searchTerm, pageable);
+	    }
+	    return itemsPage.getContent();
 	}
 
 }

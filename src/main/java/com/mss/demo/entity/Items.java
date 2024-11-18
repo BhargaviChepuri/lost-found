@@ -26,7 +26,7 @@ public class Items {
 	private int itemId;
 
 	private String itemName;
-	private String status;
+	private Status status;
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date foundDate; // createdDate
 
