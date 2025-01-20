@@ -1,16 +1,20 @@
 package com.mss.demo.entity;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.mss.demo.dto.ItemStatus;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,11 +30,17 @@ public class Items {
 	private int itemId;
 
 	private String itemName;
-	private Status status;
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date foundDate; // createdDate
 
-	private LocalDateTime receivedDate; // receivedDate
+	@Enumerated(EnumType.STRING)
+	private ItemStatus status;
+
+	private Date receivedDate; // createdDate
+
+	private int subcatgeoryId;
+
+	private int categoryId;
+
+	private Date expirationDate;
 
 	@Lob
 	private byte[] image;
@@ -40,10 +50,23 @@ public class Items {
 	@Lob
 	private String detectedText;
 
-	@PrePersist
-	protected void onCreate() {
-		this.foundDate = new Date(); // Default to current date
-		this.receivedDate = LocalDateTime.now();
-		 }
+	private String orgId;
+
+	@Column(length = 255)
+	private String description;
+	
+	private String title;
+
+	private String carbonWeight;
+
+	private Double latitude;
+
+	private Double longitude;
+
+	@ManyToOne
+	@JoinColumn(name = "user_id")
+	@JsonBackReference
+	private User user;
+	private String uniqueId;
 
 }
