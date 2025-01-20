@@ -14,20 +14,3 @@ public class CategoryItemCountDTO {
 	private int totalItems;
 
 }
-=======
-package com.mss.demo.dto;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class CategoryItemCountDTO {
-
-	private String categories;
-	private int totalItems;
-
-}
->>>>>>> daeb51f8996ebe7c160bda57c1a4cbcd9cafa8e9
