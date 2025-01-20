@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 @CrossOrigin("*")
 @SpringBootApplication
-public class LostFoundApplication {
+public class ClaimITApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(LostFoundApplication.class, args);
+		SpringApplication.run(ClaimITApplication.class, args);
 	}
 
 }

@@ -23,7 +23,7 @@ public interface ItemRequestRepo extends JpaRepository<ItemsRequest, Integer> {
 	List<ItemsRequest> findByUser_UserId(int userId);
 
 	
-	@Query("SELECT new com.mss.demo.dto.ItemsRequestDTO( "
+	@Query("SELECT new com.claimit.dto.ItemsRequestDTO( "
 	        + "ir.requestId, ir.claimedDate as claimDate, ir.status, ir.item.image, ir.user.name, ir.user.email) "
 	        + "FROM ItemsRequest ir "
 	        + "WHERE ir.user.userId = :userId AND ir.status <> :excludedStatus")

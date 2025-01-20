@@ -25,7 +25,7 @@ public interface ItemsRepo extends JpaRepository<Items, Integer> {
 	@Query("DELETE FROM Items i WHERE i.itemId IN :itemIds")
 	void deleteItemsByIds(List<Integer> itemIds);
 
-	@Query("SELECT new com.mss.demo.dto.ItemsSearchDTO( "
+	@Query("SELECT new com.claimit.dto.ItemsSearchDTO( "
 			+ "i.itemId, i.receivedDate, i.expirationDate, i.dominantColor, i.detectedText, "
 			+ "i.orgId, i.description, i.title, i.itemName, i.status, "
 			+ "u.userId, i.image, u.name, u.email, c.name,i.latitude, i.longitude) " + "FROM Items i "
@@ -45,7 +45,7 @@ public interface ItemsRepo extends JpaRepository<Items, Integer> {
 
 	List<Items> findByStatusIn(List<String> statuses);
 
-	@Query("SELECT new com.mss.demo.dto.ItemSummaryDTO(" +
+	@Query("SELECT new com.claimit.dto.ItemSummaryDTO(" +
 		       "i.itemId, i.receivedDate, i.status, i.description, i.image, i.uniqueId, c.name, i.itemName) " +
 		       "FROM Items i " +
 		       "LEFT JOIN Categories c ON i.categoryId = c.id " +
@@ -53,14 +53,14 @@ public interface ItemsRepo extends JpaRepository<Items, Integer> {
 		       "ORDER BY i.itemId DESC")
 		List<ItemSummaryDTO> findItemsSummary();
 
-	@Query("SELECT new com.mss.demo.dto.ExpiredItemDTO(i.itemId, i.status, i.receivedDate, i.expirationDate, i.image) "
+	@Query("SELECT new com.claimit.dto.ExpiredItemDTO(i.itemId, i.status, i.receivedDate, i.expirationDate, i.image) "
 			+ "FROM Items i WHERE i.status = 'ARCHIVED' ORDER BY i.receivedDate DESC")
 	List<ExpiredItemDTO> findArchivedItems();
 
 	@Query("SELECT COUNT(i) FROM Items i WHERE i.status = 'Archived'")
 	int findArchivedItemsCount();
 
-	@Query("SELECT new com.mss.demo.dto.ItemDTO(i.itemId, i.itemName, i.status, i.receivedDate, u.userId, i.image, u.name, u.email, c.name) "
+	@Query("SELECT new com.claimit.dto.ItemDTO(i.itemId, i.itemName, i.status, i.receivedDate, u.userId, i.image, u.name, u.email, c.name) "
 			+ "FROM Items i " + "LEFT JOIN i.user u " + "LEFT JOIN Categories c ON c.id = i.categoryId "
 			+ "WHERE (:userId IS NULL OR u.userId = :userId) " + "AND (:status IS NULL OR i.status = :status) "
 			+ "AND (:receivedDate IS NULL OR i.receivedDate = :receivedDate)")

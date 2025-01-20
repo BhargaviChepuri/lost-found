@@ -35,12 +35,12 @@ import com.claimit.dto.ItemDTO;
 import com.claimit.dto.ItemStatus;
 import com.claimit.dto.ItemStatusCountDTO;
 import com.claimit.dto.ItemSummaryDTO;
-import com.claimit.dto.Login;
 import com.claimit.entity.Categories;
 import com.claimit.entity.ClaimHistory;
 import com.claimit.entity.ClaimRequest;
 import com.claimit.entity.Items;
 import com.claimit.entity.ItemsRequest;
+import com.claimit.entity.Login;
 import com.claimit.entity.Organisation;
 import com.claimit.entity.Subcategories;
 import com.claimit.entity.User;
@@ -95,7 +95,7 @@ public class AdminService {
 
 	private static final String ADMIN_EMAIL = "admin@mail.com";
 	private static final String ADMIN_PASSWORD = "admin123";
-	private static final boolean IS_ADMIN = true;
+//	private static final boolean IS_ADMIN = true;
 
 	/**
 	 * Authenticates a user based on the provided email, password, and admin status.
@@ -114,7 +114,7 @@ public class AdminService {
 		Map<String, Object> response = new HashMap<>();
 		String email = login.getEmail();
 		String password = login.getPassword();
-		boolean isAdmin = login.isAdmin();
+//		boolean isAdmin = login.isAdmin();
 
 		if (email != null && password != null) {
 			LOGGER.info("Attempting authentication for email: {}", email);
@@ -123,7 +123,7 @@ public class AdminService {
 				LOGGER.info("Authentication successful for admin with email: {}", email);
 				response.put("success", true);
 				response.put("message", "Authentication successful. Welcome, admin.");
-				response.put("isAdmin", isAdmin);
+//				response.put("isAdmin", isAdmin);
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			} else {
 				LOGGER.warn("Invalid credentials provided for email: {}", email);

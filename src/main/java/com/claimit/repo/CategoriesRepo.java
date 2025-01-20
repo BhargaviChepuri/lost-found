@@ -18,7 +18,7 @@ public interface CategoriesRepo extends JpaRepository<Categories, Integer> {
 	
 	Categories findByName(String categoryName);
 	
-	@Query("SELECT new com.mss.demo.dto.CategoriesDTO(c.id, c.name) FROM Categories c")
+	@Query("SELECT new com.claimit.dto.CategoriesDTO(c.id, c.name) FROM Categories c")
 	List<CategoriesDTO> findCategoriesWithFields();
 
 
