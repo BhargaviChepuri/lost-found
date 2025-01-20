@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 package com.mss.demo.dto;
 
 import java.util.Date;

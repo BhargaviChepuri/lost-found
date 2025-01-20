@@ -1,4 +1,3 @@
-
 package com.mss.demo.entity;
 
 import java.util.List;
@@ -44,3 +43,4 @@ public class User {
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "user")
     @JsonIgnore
     private List<Items> items;
+}
