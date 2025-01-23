@@ -1,4 +1,3 @@
-
 package com.claimit.entity;
 
 import java.util.List;

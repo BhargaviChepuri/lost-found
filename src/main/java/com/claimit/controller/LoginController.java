@@ -2,17 +2,21 @@ package com.claimit.controller;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.claimit.constants.ClaimConstants;
+import com.claimit.entity.Login;
 import com.claimit.entity.error.ErrorDetails;
 import com.claimit.service.ItemsService;
-import com.claimit.service.NotificationService;
-import com.claimit.service.UserService;
+import com.claimit.service.LoginService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,30 +24,32 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @RestController
-@RequestMapping("/users")
-public class UserController {
-
+public class LoginController {
+	
 	@Autowired
-	private UserService userService;
+	public LoginService loginService;
 
-	@Autowired
-	private NotificationService notificationService;
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(LoginController.class);
 
-
-
+	/*
+	 * * @param login The Login object containing the email and password provided by
+	 * the administrator.
+	 * 
+	 * @return A ResponseEntity containing a map with the result of the
+	 * authentication attempt, including success or error details.
+	 */
 	@ResponseStatus(HttpStatus.OK)
-	@Operation(summary = "sends notifications to users before item expiration and saves the notification details.", responses = {
+	@Operation(summary = "login with credentials", responses = {
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_200, description = ClaimConstants.RESPONSE_CODE_200_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ItemsService.class))),
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_204, description = ClaimConstants.RESPONSE_CODE_204_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_400, description = ClaimConstants.RESPONSE_CODE_400_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_422, description = ClaimConstants.RESPONSE_CODE_422_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_429, description = ClaimConstants.RESPONSE_CODE_429_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_503, description = ClaimConstants.RESPONSE_CODE_503_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))) })
-	@GetMapping("/expiryNotification")
-	public String notifyUsersBeforeExpiration() {
-		notificationService.notifyAndSaveItem();
-		return "Notifications sent successfully";
-
+	@PostMapping("/login")
+	public ResponseEntity<Map<String, Object>> login(@RequestBody Login login) {
+		LOGGER.info("Login request received for email: {}", login.getEmail());
+		return loginService.login(login);
 	}
-
 }

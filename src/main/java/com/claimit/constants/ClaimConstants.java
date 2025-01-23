@@ -14,23 +14,12 @@ public class ClaimConstants {
 	public static final String RESPONSE_CODE_400 = "400";
 	public static final String RESPONSE_CODE_400_DESCRIPTION = "Bad request";
 
-	public static final String RESPONSE_CODE_401 = "401";
-	public static final String RESPONSE_CODE_401_DESCRIPTION = "Unauthorized";
-
-	public static final String RESPONSE_CODE_403 = "403";
-	public static final String RESPONSE_CODE_403_DESCRIPTION = "Forbidden";
-
-	public static final String RESPONSE_CODE_404 = "404";
-	public static final String RESPONSE_CODE_404_DESCRIPTION = "Data not found";
-
 	public static final String RESPONSE_CODE_422 = "422";
 	public static final String RESPONSE_CODE_422_DESCRIPTION = "Unprocessable Entity";
 
 	public static final String RESPONSE_CODE_429 = "429";
 	public static final String RESPONSE_CODE_429_DESCRIPTION = "Too Many Requests";
 
-	public static final String RESPONSE_CODE_500 = "500";
-	public static final String RESPONSE_CODE_500_DESCRIPTION = "Internal server error";
 
 	public static final String RESPONSE_CODE_503 = "503";
 	public static final String RESPONSE_CODE_503_DESCRIPTION = "Service unavailable";

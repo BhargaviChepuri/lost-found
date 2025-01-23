@@ -50,7 +50,7 @@ public class EmailService {
 		String formattedExpirationDate = dateFormat.format(item.getExpirationDate());
 
 		String message = buildEmailTemplate(
-				"Dear " + item.getUser().getName() + ",\n\nYour claim for item " + item.getItemName()
+				"Dear " + item.getUser().getUserName() + ",\n\nYour claim for item " + item.getItemName()
 						+ " has been successful. " + ".",
 				item.getStatus(), formattedExpirationDate.toString());
 
@@ -64,7 +64,7 @@ public class EmailService {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		String formattedExpirationDate = dateFormat.format(item.getExpirationDate());
 		String message = "The item <strong>" + item.getItemName() + "</strong> has been claimed by " + "<strong>"
-				+ item.getUser().getName() + " (" + item.getUser().getEmail() + ")</strong>.";
+				+ item.getUser().getUserName() + " (" + item.getUser().getEmail() + ")</strong>.";
 		String emailContent = buildEmailTemplateForClaimNotification(message, ItemStatus.PENDING_APPROVAL,formattedExpirationDate.toString(),
 				item.getReceivedDate());
 

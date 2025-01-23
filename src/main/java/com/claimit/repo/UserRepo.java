@@ -13,7 +13,7 @@ import com.claimit.entity.User;
 
 public interface UserRepo extends JpaRepository<User, Integer> {
 
-	Page<User> findByNameContainingIgnoreCase(String searchTerm, Pageable pageable);
+
 
 	Optional<User> findByEmail(String email);
 
@@ -22,8 +22,7 @@ public interface UserRepo extends JpaRepository<User, Integer> {
 	@Query("SELECT u.userId FROM User u WHERE u.email = :email")
 	Integer findUserIdByEmail(@Param("email") String email);
 
-	Optional<User> findByEmailAndName(String email, String userName);
 	
-	@Query("SELECT u FROM User u WHERE u.email = :email OR u.name = :userName")
+	@Query("SELECT u FROM User u WHERE u.email = :email OR u.userName = :userName")
 	Optional<User> findByEmailOrUserName(@Param("email") String email, @Param("userName") String userName);
 }

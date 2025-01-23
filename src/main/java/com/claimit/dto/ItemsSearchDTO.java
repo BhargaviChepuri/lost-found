@@ -25,7 +25,7 @@ public class ItemsSearchDTO {
 	private ItemStatus status;
 	private Integer userId;
 	private byte[] image;
-	private String name;
+	private String userName;
 	private String email;
 	private String categoryName;
 	private Double latitude; 
@@ -33,7 +33,7 @@ public class ItemsSearchDTO {
 
 	public ItemsSearchDTO(int itemId, Date receivedDate, Date expirationDate, String dominantColor, String detectedText,
 			String orgId, String description, String title, String itemName, ItemStatus status,
-			 Integer userId, byte[] image, String name, String email, String categoryName,Double latitude, Double longitude) {
+			 Integer userId, byte[] image, String userName, String email, String categoryName,Double latitude, Double longitude) {
 		this.itemId = itemId;
 		this.receivedDate = receivedDate;
 		this.expirationDate = expirationDate;
@@ -46,7 +46,7 @@ public class ItemsSearchDTO {
 		this.status = status;
 		this.userId = userId;
 		this.image = image;
-		this.name = name;
+		this.userName = userName;
 		this.email = email;
 		this.categoryName = categoryName;
 		this.latitude = latitude;

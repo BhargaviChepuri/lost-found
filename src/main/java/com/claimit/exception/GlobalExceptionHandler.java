@@ -16,11 +16,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", ex.getMessage()));
     }
 
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<?> handleGlobalException(Exception ex) {
-//    
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                             .body(Map.of("message", "An error occurred. Please try again later."));
-//    }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGlobalException(Exception ex) {
+    
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                             .body(Map.of("message", "An error occurred. Please try again later."));
+    }
 }
 

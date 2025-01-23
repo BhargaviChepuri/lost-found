@@ -28,11 +28,9 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "user_id")
 	private int userId;
-	private String name;
+	private String userName;
 	@Column(unique = true)
 	private String email;
-	private String phoneNumber;
-	private String password;
 	private Integer role;
 
 	@ManyToOne

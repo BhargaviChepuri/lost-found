@@ -16,10 +16,9 @@ public interface ClaimHistoryRepository extends JpaRepository<ClaimHistory, Inte
 
 	List<ClaimHistory> findByRequest_Item_ItemId(int itemId);
 
-
 	
 	@Query("SELECT new com.claimit.dto.ClaimHistoryDTO( "
-	        + "ch.claimId, ch.claimDate, ch.claimStatus, i.image, r.requestId, ch.user.id, ch.user.name, ch.user.email) "
+	        + "ch.claimId, ch.claimDate, ch.claimStatus, i.image, r.requestId, ch.user.id, ch.user.userName, ch.user.email) "
 	        + "FROM ClaimHistory ch "
 	        + "JOIN ch.request r "
 	        + "JOIN r.item i "

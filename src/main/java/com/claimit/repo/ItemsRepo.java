@@ -20,22 +20,16 @@ import com.claimit.entity.Items;
 
 public interface ItemsRepo extends JpaRepository<Items, Integer> {
 
-	Page<Items> findByItemNameContainingIgnoreCase(String searchTerm, Pageable pageable);
-
-	@Query("DELETE FROM Items i WHERE i.itemId IN :itemIds")
-	void deleteItemsByIds(List<Integer> itemIds);
-
 	@Query("SELECT new com.claimit.dto.ItemsSearchDTO( "
 			+ "i.itemId, i.receivedDate, i.expirationDate, i.dominantColor, i.detectedText, "
 			+ "i.orgId, i.description, i.title, i.itemName, i.status, "
-			+ "u.userId, i.image, u.name, u.email, c.name,i.latitude, i.longitude) " + "FROM Items i "
-			+ "LEFT JOIN i.user u " + "LEFT JOIN Categories c ON c.id = i.categoryId "
+			+ "u.userId, i.image, u.userName, u.email, c.name AS categoryName,i.latitude, i.longitude) " + "FROM Items i "
+			+ "LEFT JOIN i.user u " + "LEFT JOIN LookUp c ON c.id = i.categoryId "
 			+ "WHERE (:itemName IS NULL OR LOWER(i.itemName) LIKE LOWER(CONCAT('%', :itemName, '%'))) "
 			+ "AND (:color IS NULL OR LOWER(i.dominantColor) LIKE LOWER(CONCAT('%', :color, '%'))) "
-			+ "AND (:category IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :category, '%')))")
+			+ "AND (:category IS NULL OR LOWER(c.name ) LIKE LOWER(CONCAT('%', :category, '%')))")
 	List<ItemsSearchDTO> searchByItemNameColorAndCategory(@Param("itemName") String itemName,
 			@Param("color") String color, @Param("category") String category);
-
 
 	List<Items> findByOrgId(String orgId);
 
@@ -45,13 +39,11 @@ public interface ItemsRepo extends JpaRepository<Items, Integer> {
 
 	List<Items> findByStatusIn(List<String> statuses);
 
-	@Query("SELECT new com.claimit.dto.ItemSummaryDTO(" +
-		       "i.itemId, i.receivedDate, i.status, i.description, i.image, i.uniqueId, c.name, i.itemName) " +
-		       "FROM Items i " +
-		       "LEFT JOIN Categories c ON i.categoryId = c.id " +
-		       "WHERE i.status != 'ARCHIEVED' " +
-		       "ORDER BY i.itemId DESC")
-		List<ItemSummaryDTO> findItemsSummary();
+	@Query("SELECT new com.claimit.dto.ItemSummaryDTO("
+			+ "i.itemId, i.receivedDate, i.status, i.description, i.image, i.uniqueId, c.name AS categoryName, i.itemName) "
+			+ "FROM Items i " + "LEFT JOIN LookUp c ON i.categoryId = c.id " + "WHERE i.status != 'ARCHIEVED' "
+			+ "ORDER BY i.itemId DESC")
+	List<ItemSummaryDTO> findItemsSummary();
 
 	@Query("SELECT new com.claimit.dto.ExpiredItemDTO(i.itemId, i.status, i.receivedDate, i.expirationDate, i.image) "
 			+ "FROM Items i WHERE i.status = 'ARCHIVED' ORDER BY i.receivedDate DESC")
@@ -60,8 +52,8 @@ public interface ItemsRepo extends JpaRepository<Items, Integer> {
 	@Query("SELECT COUNT(i) FROM Items i WHERE i.status = 'Archived'")
 	int findArchivedItemsCount();
 
-	@Query("SELECT new com.claimit.dto.ItemDTO(i.itemId, i.itemName, i.status, i.receivedDate, u.userId, i.image, u.name, u.email, c.name) "
-			+ "FROM Items i " + "LEFT JOIN i.user u " + "LEFT JOIN Categories c ON c.id = i.categoryId "
+	@Query("SELECT new com.claimit.dto.ItemDTO(i.itemId, i.itemName, i.status, i.receivedDate, u.userId, i.image, u.userName, u.email, c.name AS categoryName) "
+			+ "FROM Items i " + "LEFT JOIN i.user u " + "LEFT JOIN LookUp c ON c.id = i.categoryId "
 			+ "WHERE (:userId IS NULL OR u.userId = :userId) " + "AND (:status IS NULL OR i.status = :status) "
 			+ "AND (:receivedDate IS NULL OR i.receivedDate = :receivedDate)")
 	List<ItemDTO> findAllByCriteria(@Param("userId") Integer userId, @Param("status") ItemStatus status,
@@ -107,5 +99,12 @@ public interface ItemsRepo extends JpaRepository<Items, Integer> {
 	@Query("SELECT COALESCE(MAX(CAST(SUBSTRING(i.uniqueId, LENGTH(:date) + 2) AS int)), 0) "
 			+ "FROM Items i WHERE i.uniqueId LIKE CONCAT(:date, '-%')")
 	Optional<Integer> findLatestNumberByDate(@Param("date") String date);
+
+	@Query("SELECT new com.claimit.dto.ItemSummaryDTO(i.itemId, i.receivedDate, i.status, i.description, i.image, i.uniqueId, c.name AS categoryName, i.itemName) "
+			+ "FROM Items i " + "LEFT JOIN LookUp c ON i.categoryId = c.id "
+			+ "WHERE FUNCTION('MONTH', i.receivedDate) = FUNCTION('MONTH', CURRENT_DATE) "
+			+ "AND FUNCTION('YEAR', i.receivedDate) = FUNCTION('YEAR', CURRENT_DATE) "
+			+ "ORDER BY i.receivedDate DESC, i.uniqueId DESC")
+	List<ItemSummaryDTO> findItemsByCurrentMonthAndYear();
 
 }

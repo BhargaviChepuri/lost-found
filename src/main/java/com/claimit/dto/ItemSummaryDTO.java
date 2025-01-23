@@ -18,7 +18,7 @@ public class ItemSummaryDTO {
 	private String description;
 	private byte[] image;
 	private String uniqueId;
-	private String name;
+	private String categoryName;
 	private String itemName;
 
 
