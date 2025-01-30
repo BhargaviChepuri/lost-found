@@ -1,10 +1,10 @@
+
 package com.mss.demo.dto;
 import java.util.Arrays;
 import java.util.List;
 
 public class ColorUtils {
 
-    // Define a list of standard colors
     private static final List<Color> COLORS = Arrays.asList(
         new Color("White", 255, 255, 255),
         new Color("Black", 0, 0, 0),
@@ -17,10 +17,8 @@ public class ColorUtils {
         new Color("Gray", 128, 128, 128),
         new Color("Orange", 255, 165, 0),
         new Color("Pink", 255, 192, 203)
-        // Add more colors as needed
     );
 
-    // Find the closest color by RGB distance
     public static String getClosestColorName(int r, int g, int b) {
         Color closestColor = null;
         double minDistance = Double.MAX_VALUE;

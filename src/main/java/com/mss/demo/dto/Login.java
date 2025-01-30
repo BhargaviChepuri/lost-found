@@ -1,7 +1,5 @@
-package com.mss.demo.entity;
 
-import java.time.LocalDateTime;
-import java.util.Date;
+package com.mss.demo.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,6 +11,6 @@ import lombok.NoArgsConstructor;
 public class Login {
 	private String email;
 	private String password;
-	private int role;
+	private boolean isAdmin;
 
 }
