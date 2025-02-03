@@ -157,7 +157,7 @@ public class EmailService {
 				+ "                        <td>" + status + "</td>" + "                        <td>" + expirationDate
 				+ "</td>" + "                    </tr>" + "                </tbody>" + "            </table>"
 				+ "        </div>" + "        <div class=\"email-footer\">"
-				+ "            <p>&copy; 2024 ClaimIt. All rights reserved.</p>" + "        </div>" + "    </div>"
+				+ "            <p>&copy; 2025 ClaimIt. All rights reserved.</p>" + "        </div>" + "    </div>"
 				+ "</body>" + "</html>";
 	}
 
@@ -185,7 +185,7 @@ public class EmailService {
 				+ "                        <td>" + status + "</td>" + "                        <td>" + expirationDate
 				+ "</td>" + "                    </tr>" + "                </tbody>" + "            </table>"
 				+ "        </div>" + "        <div class=\"email-footer\">"
-				+ "            <p>&copy; 2024 ClaimIt. All rights reserved.</p>" + "        </div>" + "    </div>"
+				+ "            <p>&copy; 2025 ClaimIt. All rights reserved.</p>" + "        </div>" + "    </div>"
 				+ "</body>" + "</html>";
 	}
 
