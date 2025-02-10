@@ -14,7 +14,7 @@ import com.claimit.entity.ItemsRequest;
 
 public interface ItemRequestRepo extends JpaRepository<ItemsRequest, Integer> {
 
-	Optional<ItemsRequest> findFirstByItem_ItemIdAndStatus(int itemId, ItemStatus status);
+	Optional<ItemsRequest> findFirstByItemItemIdAndStatus(int itemId, ItemStatus status);
 
 	@Query("SELECT new com.claimit.dto.ItemsRequestDTO( "
 			+ "ir.requestId, ir.claimedDate as claimDate, ir.status, ir.item.image, ir.user.userName, ir.user.email) "

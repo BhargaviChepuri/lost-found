@@ -1,4 +1,3 @@
-
 package com.claimit.service;
 
 import java.time.LocalDateTime;
@@ -129,6 +128,18 @@ public class NotificationService {
 				item.getItemName(), item.getExpirationDate().toString());
 	}
 
+	/**
+	 * Notifies users about item expiration and saves the item with expiration
+	 * logic.
+	 * 
+	 * This method checks all items in the system and calculates whether they are
+	 * close to expiration. If the item is nearing expiration (30, 10, 2, or 1 day
+	 * left), a notification is sent to the associated users, and the item is saved
+	 * with updated expiration logic.
+	 * 
+	 * Subclasses that override this method must ensure the item expiration logic is
+	 * respected, and notifications are appropriately sent.
+	 */
 	public void notifyAndSaveItem() {
 		List<Items> items = itemsRepo.findAll();
 		LocalDateTime now = LocalDateTime.now();
@@ -156,10 +167,10 @@ public class NotificationService {
 	}
 
 	private void sendNotifications(Items item, String message) {
-		List<User> users = userRepo.findByItems_ItemId(item.getItemId());
+		List<User> users = userRepo.findByItemsItemId(item.getItemId());
 
 		List<String> userEmails = users.stream().map(User::getEmail).collect(Collectors.toList());
-		System.out.println("User emails: " + userEmails); 
+		System.out.println("User emails: " + userEmails);
 
 		for (String email : userEmails) {
 			emailService.sendEmail(email, "Item Expiration Notification", generateHtmlTemplate(item, message));

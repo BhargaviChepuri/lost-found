@@ -9,8 +9,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -18,13 +18,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,7 +36,6 @@ import com.claimit.dto.ItemsSearchDTO;
 import com.claimit.entity.Categories;
 import com.claimit.entity.Items;
 import com.claimit.entity.ItemsRequest;
-import com.claimit.entity.LookUp;
 import com.claimit.entity.Organisation;
 import com.claimit.entity.Subcategories;
 import com.claimit.exception.ItemNotFoundException;
@@ -387,107 +386,61 @@ public class ItemsService {
 	 *         message.
 	 */
 	// Archive Expired Items
-	public Map<String, Object> archiveExpiredItems(Integer itemId) {
-		LOGGER.info("Entering archiveExpiredItems with itemId: {}", itemId);
-		Map<String, Object> res = new HashMap<>();
-		res.put(Constants.SUCCESS, false);
-		res.put(Constants.MESSAGE, Constants.INVALID_INPUTS);
-
+	@Scheduled(fixedRate = 86400000) // Runs every 24 hours
+	public void archiveExpiredItemsAutomatically() {
 		Date currentDate = new Date();
 
-		if (itemId == null) {
-			List<Items> expiredItems = itemsRepository.findAll();
+		List<Items> items = itemsRepository.findByStatus(ItemStatus.UNCLAIMED);
 
-			for (Items item : expiredItems) {
-				Date receivedDate = item.getReceivedDate();
-				if (receivedDate == null) {
-					continue;
-				}
+		for (Items item : items) {
+			Date expirationDate = item.getExpirationDate();
 
-				Calendar calendar = Calendar.getInstance();
-				calendar.setTime(receivedDate);
-				calendar.add(Calendar.DAY_OF_MONTH, 90);
-				Date expirationDate = calendar.getTime();
-
-				long timeUntilExpiration = expirationDate.getTime() - currentDate.getTime();
-				long daysUntilExpiration = TimeUnit.MILLISECONDS.toDays(timeUntilExpiration);
-
-				if (daysUntilExpiration == 30) {
-					if (item.getUser() != null) {
-						emailService.sendExpirationReminder(item.getUser().getEmail(), item, 30);
-					} else {
-						LOGGER.info("User is null for item with ID: " + item.getItemId());
-
-					}
-				} else if (daysUntilExpiration == 3) {
-					if (item.getUser() != null) {
-						emailService.sendExpirationReminder(item.getUser().getEmail(), item, 3);
-					} else {
-						LOGGER.info("User is null for item with ID: " + item.getItemId());
-					}
-				}
-
-				if (currentDate.after(expirationDate)) {
-					item.setStatus(ItemStatus.ARCHIVED);
-					itemsRepository.save(item);
-
-					emailService.sendArchivedNotificationToAdmin(item);
-					if (item.getUser() != null) {
-						emailService.sendArchivedNotificationToUser(item);
-					} else {
-						LOGGER.info("User is null for item with ID: " + item.getItemId());
-					}
-				}
-			}
-		} else {
-			Optional<Items> itemData = itemsRepository.findById(itemId);
-			if (itemData.isPresent()) {
-				Items item = itemData.get();
-
-				Date receivedDate = item.getReceivedDate();
-				if (receivedDate == null) {
-					throw new RuntimeException("Found date is missing for the item.");
-				}
-
-				Calendar calendar = Calendar.getInstance();
-				calendar.setTime(receivedDate);
-				calendar.add(Calendar.DAY_OF_MONTH, 90);
-				Date expirationDate = calendar.getTime();
-
-				long timeUntilExpiration = expirationDate.getTime() - currentDate.getTime();
-				long daysUntilExpiration = TimeUnit.MILLISECONDS.toDays(timeUntilExpiration);
-
-				if (daysUntilExpiration == 30) {
-					if (item.getUser() != null) {
-						emailService.sendExpirationReminder(item.getUser().getEmail(), item, 30);
-					} else {
-						LOGGER.info("User is null for item with ID: " + item.getItemId());
-					}
-				} else if (daysUntilExpiration == 3) {
-					if (item.getUser() != null) {
-						emailService.sendExpirationReminder(item.getUser().getEmail(), item, 3);
-					} else {
-						LOGGER.info("User is null for item with ID: " + item.getItemId());
-					}
-				}
-
-				if (currentDate.after(expirationDate)) {
-					item.setStatus(ItemStatus.ARCHIVED);
-					itemsRepository.save(item);
-
-					emailService.sendArchivedNotificationToAdmin(item);
-					if (item.getUser() != null) {
-						emailService.sendArchivedNotificationToUser(item);
-					} else {
-						LOGGER.info("User is null for item with ID: " + item.getItemId());
-					}
-				}
-			} else {
-				throw new RuntimeException("Item not found with ID: " + itemId);
+			if (expirationDate != null && expirationDate.before(currentDate)) {
+				item.setStatus(ItemStatus.ARCHIVED);
+				itemsRepository.save(item);
 			}
 		}
+	}
 
-		res.put(Constants.MESSAGE, Constants.SUCESSFULLY_DELETED);
+	public Map<String, Object> archiveExpiredItems(String fromDateStr, String toDateStr, String expirationDateStr) {
+		LOGGER.info("Entering archiveExpiredItems with fromDate: {} to toDate: {} and expirationDate: {}", fromDateStr,
+				toDateStr, expirationDateStr);
+
+		Map<String, Object> res = new HashMap<>();
+
+		try {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			Date fromDate = sdf.parse(fromDateStr);
+			Date toDate = sdf.parse(toDateStr);
+			Date newExpirationDate = null;
+
+			if (expirationDateStr != null && !expirationDateStr.isEmpty()) {
+				newExpirationDate = sdf.parse(expirationDateStr);
+			}
+
+			List<Items> archivedItems = itemsRepository.findByStatusAndReceivedDateBetween(ItemStatus.ARCHIVED,
+					fromDate, toDate);
+
+			for (Items item : archivedItems) {
+				item.setStatus(ItemStatus.UNCLAIMED);
+
+				if (newExpirationDate != null) {
+					item.setExpirationDate(newExpirationDate);
+				}
+
+				item.setReceivedDate(new Date());
+
+				itemsRepository.save(item);
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("Error processing archived items", e);
+			res.put(Constants.MESSAGE, "Failed to process archived items.");
+			res.put(Constants.SUCCESS, false);
+			return res;
+		}
+
+		res.put(Constants.MESSAGE, Constants.SUCESSFULLY_UPDATED);
 		res.put(Constants.SUCCESS, true);
 		return res;
 	}
@@ -519,7 +472,7 @@ public class ItemsService {
 		}
 		LOGGER.info(" approval/rejection process for Item ID: {}", itemId);
 
-		Optional<ItemsRequest> requestOpt = itemRequestRepo.findFirstByItem_ItemIdAndStatus(itemId,
+		Optional<ItemsRequest> requestOpt = itemRequestRepo.findFirstByItemItemIdAndStatus(itemId,
 				ItemStatus.PENDING_APPROVAL);
 		Optional<Items> items = itemsRepository.findById(itemId);
 		items.get().setStatus(status);
@@ -1121,86 +1074,135 @@ public class ItemsService {
 	 *
 	 * @return A map containing the calculated category statistics.
 	 */
-	public Map<String, Object> getCarbonWeight() {
-		LOGGER.info("Starting category stats calculation.");
-
-		Map<String, Object> response = new HashMap<>();
-		Map<String, Double> categoryWeights = new HashMap<>();
-		Map<String, Integer> categoryItemCount = new HashMap<>();
-
-		List<LookUp> allCategories = categoriesRepo.findAllByCode("C");
-		LOGGER.info("Found {} categories.", allCategories);
-
-		for (LookUp lookUp : allCategories) {
-			System.out.println(lookUp);
-			String categoryName = lookUp.getName();
-			categoryWeights.put(categoryName, 0.0);
-			categoryItemCount.put(categoryName, 0);
-		}
-
-		List<Items> unclaimedItems = itemsRepository.findByStatus(ItemStatus.UNCLAIMED);
-		LOGGER.info("Found {} unclaimed items.", unclaimedItems.size());
-
-		for (Items item : unclaimedItems) {
-			int categoryId = item.getCategoryId();
-//			LookUp lookUp = lookUpRepository.findAllById(categoryId).orElse(null);
-			Optional<Categories> lookUp = categoriesRepo.findById(categoryId);
-			System.out.println();
-
-			if (lookUp != null) {
-				Double weight = 0.0;
-				try {
-					weight = Double.parseDouble(item.getCarbonWeight().replace(" kg", "").trim());
-				} catch (NumberFormatException e) {
-					weight = 0.0;
-				}
-
-				String categoryName = lookUp.get().getCategoryName();
-				categoryWeights.put(categoryName, categoryWeights.getOrDefault(categoryName, 0.0) + weight);
-				categoryItemCount.put(categoryName, categoryItemCount.getOrDefault(categoryName, 0) + 1);
-			}
-		}
-
-		List<Map<String, String>> categories = new ArrayList<>();
-		for (String categoryName : categoryWeights.keySet()) {
-			Map<String, String> categoryStats = new HashMap<>();
-			categoryStats.put("category", categoryName);
-			categoryStats.put("totalWeight", String.format("%.2f kg", categoryWeights.get(categoryName)));
-			categoryStats.put("totalItems", String.valueOf(categoryItemCount.get(categoryName)));
-			categories.add(categoryStats);
-		}
-
-		response.put("categories", categories);
-		LOGGER.info("Category stats calculated: {}", categories);
-
-		return response;
-	}
+//	public Map<String, Object> getCarbonWeight() {
+//		LOGGER.info("Starting category stats calculation.");
+//
+//		Map<String, Object> response = new HashMap<>();
+//		Map<String, Double> categoryWeights = new HashMap<>();
+//		Map<String, Integer> categoryItemCount = new HashMap<>();
+//
+//		List<Categories> allCategories = categoriesRepo.findCategoryIdAndCategoryName("C");
+//		LOGGER.info("Found {} categories.", allCategories);
+//
+//		for (Categories lookUp : allCategories) {
+//			System.out.println(lookUp);
+//			String categoryName = lookUp.getCategoryName();
+//			categoryWeights.put(categoryName, 0.0);
+//			categoryItemCount.put(categoryName, 0);
+//		}
+//
+//		List<Items> unclaimedItems = itemsRepository.findByStatus(ItemStatus.UNCLAIMED);
+//		LOGGER.info("Found {} unclaimed items.", unclaimedItems.size());
+//
+//		for (Items item : unclaimedItems) {
+//			int categoryId = item.getCategoryId();
+////			LookUp lookUp = lookUpRepository.findAllById(categoryId).orElse(null);
+//			Optional<Categories> lookUp = categoriesRepo.findById(categoryId);
+//			System.out.println();
+//
+//			if (lookUp != null) {
+//				Double weight = 0.0;
+//				try {
+//					weight = Double.parseDouble(item.getCarbonWeight().replace(" kg", "").trim());
+//				} catch (NumberFormatException e) {
+//					weight = 0.0;
+//				}
+//
+//				String categoryName = lookUp.get().getCategoryName();
+//				categoryWeights.put(categoryName, categoryWeights.getOrDefault(categoryName, 0.0) + weight);
+//				categoryItemCount.put(categoryName, categoryItemCount.getOrDefault(categoryName, 0) + 1);
+//			}
+//		}
+//
+//		List<Map<String, String>> categories = new ArrayList<>();
+//		for (String categoryName : categoryWeights.keySet()) {
+//			Map<String, String> categoryStats = new HashMap<>();
+//			categoryStats.put("category", categoryName);
+//			categoryStats.put("totalWeight", String.format("%.2f kg", categoryWeights.get(categoryName)));
+//			categoryStats.put("totalItems", String.valueOf(categoryItemCount.get(categoryName)));
+//			categories.add(categoryStats);
+//		}
+//
+//		response.put("categories", categories);
+//		LOGGER.info("Category stats calculated: {}", categories);
+//
+//		return response;
+//	}
 
 	/**
-	 * Method to fetch details of all items with the status 'OPEN'. It retrieves all
-	 * items with the specified status and returns the count and details in the
+	 * Method to fetch details of all items with the status 'ARCHIVED'. It retrieves
+	 * all items with the specified status and returns the count and details in the
 	 * response.
 	 *
 	 * @return a map containing the item count, item details, and a success message
 	 */
-	public Map<String, Object> getItemDetails() {
-		LOGGER.info("Fetching item details with status 'UNCLAIMED'");
 
+//	public List<Items> getArchivedItems(String fromDateStr, String toDateStr) {
+//		try {
+//			if (fromDateStr != null && toDateStr != null && !fromDateStr.isEmpty() && !toDateStr.isEmpty()) {
+//				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+//				Date fromDate = sdf.parse(fromDateStr);
+//				Date toDate = sdf.parse(toDateStr);
+//
+//				LOGGER.info("Fetching ARCHIVED items between {} and {}", fromDate, toDate);
+//				return itemsRepository.findByStatusAndReceivedDateBetween(ItemStatus.ARCHIVED, fromDate, toDate);
+//			} else {
+//				LOGGER.info("Fetching all ARCHIVED items");
+//				return itemsRepository.findByStatus(ItemStatus.ARCHIVED);
+//			}
+//		} catch (ParseException e) {
+//			LOGGER.error("Error parsing dates", e);
+//			return Collections.emptyList(); // Return empty list if date parsing fails
+//		}
+//	}
+	public List<Items> getArchivedItems(String fromDateStr, String toDateStr) {
+		try {
+			if (fromDateStr != null && toDateStr != null && !fromDateStr.isEmpty() && !toDateStr.isEmpty()) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				Date fromDate = sdf.parse(fromDateStr);
+				Date toDate = sdf.parse(toDateStr);
+
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTime(toDate);
+				calendar.set(Calendar.HOUR_OF_DAY, 23);
+				calendar.set(Calendar.MINUTE, 59);
+				calendar.set(Calendar.SECOND, 59);
+				calendar.set(Calendar.MILLISECOND, 999);
+				toDate = calendar.getTime();
+
+				LOGGER.info("Fetching ARCHIVED items between {} and {}", fromDate, toDate);
+				return itemsRepository.findByStatusAndReceivedDateBetween(ItemStatus.ARCHIVED, fromDate, toDate);
+			} else {
+				LOGGER.info("Fetching all ARCHIVED items");
+				return itemsRepository.findByStatus(ItemStatus.ARCHIVED);
+			}
+		} catch (ParseException e) {
+			LOGGER.error("Error parsing dates", e);
+			return Collections.emptyList(); // Return empty list if date parsing fails
+		}
+	}
+
+	public Map<String, Object> archiveExpiredItems(Integer itemId) {
 		Map<String, Object> res = new HashMap<>();
-		res.put(Constants.SUCCESS, false);
-		res.put(Constants.MESSAGE, Constants.INVALID_INPUTS);
-		List<String> statuses = Arrays.asList("UNCLAIMED");
 
-		List<Items> filteredItems = itemsRepository.findByStatusIn(statuses);
+		if (itemId != null) {
+			Optional<Items> itemData = itemsRepository.findById(itemId);
+			if (itemData.isPresent()) {
+				Items item = itemData.get();
 
-		long count = filteredItems.size();
-		Map<String, Object> response = new HashMap<>();
-		response.put("count", count);
-		response.put("items", filteredItems);
-		response.put("message", "Successfully fetched the item details.");
-		LOGGER.info("Fetched {} item(s) with status 'OPEN'", count);
+				item.setStatus(ItemStatus.ARCHIVED);
+				itemsRepository.save(item);
 
-		return response;
+				res.put(Constants.MESSAGE, "Item successfully archived.");
+				res.put(Constants.SUCCESS, true);
+			} else {
+				throw new RuntimeException("Item not found with ID: " + itemId);
+			}
+		} else {
+			throw new RuntimeException("Item ID must be provided.");
+		}
+
+		return res;
 	}
 
 }

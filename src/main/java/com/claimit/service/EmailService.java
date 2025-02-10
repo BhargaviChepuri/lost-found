@@ -1,4 +1,3 @@
-
 package com.claimit.service;
 
 import java.text.SimpleDateFormat;
@@ -22,12 +21,12 @@ import jakarta.mail.internet.MimeMessage;
 public class EmailService {
 
 	@Autowired
-	private JavaMailSender mailSender;
+	private static JavaMailSender mailSender;
 
 	/**
 	 * Send an email using Spring's JavaMailSender.
 	 */
-	public void sendEmail(String to, String subject, String body) {
+	public static void sendEmail(String to, String subject, String body) {
 		try {
 			MimeMessage message = mailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -43,7 +42,14 @@ public class EmailService {
 		}
 	}
 
-	public void sendClaimConfirmationEmail(String userEmail, Items item) {
+	/**
+	 * Sends a claim confirmation email. This method is intended to be overridden 
+	 * by subclasses to customize the email content.
+	 * 
+	 * @param userEmail The email address of the user.
+	 * @param item The item object containing claim details.
+	 */
+	public static void sendClaimConfirmationEmail(String userEmail, Items item) {
 		String subject = "Item Claim Confirmation";
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -70,7 +76,14 @@ public class EmailService {
 		sendEmail(adminEmail, subject, emailContent);
 
 	}
-
+	/**
+	 * Sends an expiration reminder email to the user.
+	 * 
+	 * @param userEmail The email of the user.
+	 * @param item The item for which the expiration reminder is being sent.
+	 * @param days The number of days remaining until expiration.
+	 * @throws SomeException if an error occurs while sending the email.
+	 */
 	public void sendExpirationReminder(String userEmail, Items item, int days) {
 		String subject = "Reminder: Your item is about to expire!";
 
@@ -130,7 +143,7 @@ public class EmailService {
 	}
 
 	// Send archived item notification to the user
-	private String buildEmailTemplate(String message, ItemStatus status, String expirationDate) {
+	private static String buildEmailTemplate(String message, ItemStatus status, String expirationDate) {
 		return "<!DOCTYPE html>" + "<html lang=\"en\">" + "<head>" + "<meta charset=\"UTF-8\">"
 				+ "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" + "<style>"
 				+ "body { margin: 0; padding: 0; }" + ".email-container {" + "    width: 100%;"
@@ -152,7 +165,7 @@ public class EmailService {
 				+ "                        <td>" + status + "</td>" + "                        <td>" + expirationDate
 				+ "</td>" + "                    </tr>" + "                </tbody>" + "            </table>"
 				+ "        </div>" + "        <div class=\"email-footer\">"
-				+ "            <p>&copy; 2024 ClaimIt. All rights reserved.</p>" + "        </div>" + "    </div>"
+				+ "            <p>&copy; 2025 ClaimIt. All rights reserved.</p>" + "        </div>" + "    </div>"
 				+ "</body>" + "</html>";
 	}
 
@@ -179,7 +192,7 @@ public class EmailService {
 				+ "                        <td>" + status + "</td>" + "                        <td>" + expirationDate
 				+ "</td>" + "                    </tr>" + "                </tbody>" + "            </table>"
 				+ "        </div>" + "        <div class=\"email-footer\">"
-				+ "            <p>&copy; 2024 ClaimIt. All rights reserved.</p>" + "        </div>" + "    </div>"
+				+ "            <p>&copy; 2025 ClaimIt. All rights reserved.</p>" + "        </div>" + "    </div>"
 				+ "</body>" + "</html>";
 	}
 
@@ -211,35 +224,6 @@ public class EmailService {
 				.append("</html>");
 
 		return emailTemplate.toString();
-	}
-
-	public void sendEmailWithQRCode(String toEmail, String uniqueId, String itemName, String itemStatus) {
-		try {
-			// Generate QR code with item details
-			String qrCodeBase64 = QRCodeGenerator.generateQRCodeBase64(uniqueId, itemName, itemStatus, 200, 200);
-
-			if (qrCodeBase64 == null || qrCodeBase64.isEmpty()) {
-			    System.out.println("❌ Failed to generate QR Code. Email will be sent without QR.");
-			    return;  // Stop sending email if QR code generation failed
-			}
-			
-			String qrCodeImage = "data:image/png;base64," + qrCodeBase64;
-
-			MimeMessage message = mailSender.createMimeMessage();
-			MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
-			helper.setTo(toEmail);
-			helper.setSubject("Claim Your Item");
-			helper.setText("<h3>Scan to View Item Details</h3>"
-			    + "<p>Scan the QR code below:</p>"
-			    + "<img src='" + qrCodeImage + "' alt='QR Code'/>", true);
-
-			mailSender.send(message);
-			System.out.println("✅ Email sent with QR Code!");
-
-		} catch (Exception e) {
-			throw new RuntimeException("Error while sending email with QR Code", e);
-		}
 	}
 
 }

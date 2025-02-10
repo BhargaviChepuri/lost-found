@@ -28,10 +28,24 @@ public class LoginController {
 	
 	@Autowired
 	public LoginService loginService;
+	
+	public LoginController(LoginService loginService) {
+		this.loginService = loginService;
+	}
 
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoginController.class);
 
+	/**
+	 * Logs in a user with provided credentials.
+	 *
+	 * <p>This method allows users to log in by providing their email and password. It processes the login
+	 * request and returns the appropriate response based on the validation results.</p>
+	 *
+	 * @param login The login credentials including email and password.
+	 * @return A {@link ResponseEntity} containing a map with the login response data, which includes
+	 *         authentication status and potential error messages.
+	 */
 	@ResponseStatus(HttpStatus.OK)
 	@Operation(summary = "login with credentials", responses = {
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_200, description = ClaimConstants.RESPONSE_CODE_200_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ItemsService.class))),

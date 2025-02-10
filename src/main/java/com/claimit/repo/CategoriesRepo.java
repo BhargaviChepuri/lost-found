@@ -18,10 +18,8 @@ public interface CategoriesRepo extends JpaRepository<Categories, Integer> {
 
 	boolean existsByCategoryNameIgnoreCase(String term);
 
-	@Query("SELECT c.id, c.categoryName FROM Categories c")
-	List<Object[]> findCategoryIdAndCategoryName();
 
-	
-	@Query("FROM LookUp WHERE LOWER(code) = :string")
-	List<LookUp> findAllByCode(String string);
+	@Query("SELECT c.id AS id, c.categoryName FROM Categories c")
+	List<Object[]> findIdAndCategoryName();
+
 }

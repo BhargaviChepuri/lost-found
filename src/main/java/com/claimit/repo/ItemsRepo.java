@@ -18,26 +18,19 @@ public interface ItemsRepo extends JpaRepository<Items, Integer> {
 	@Query("SELECT new com.claimit.dto.ItemsSearchDTO( "
 			+ "i.itemId, i.receivedDate, i.expirationDate, i.colour, i.detectedText, "
 			+ "i.orgId, i.description, i.title, i.itemName, i.status, "
-			+ "u.userId, i.image, u.userName, u.email, c.categoryName) " + "FROM Items i "
-			+ "LEFT JOIN i.user u " + "LEFT JOIN Categories c ON c.id = i.categoryId "
+			+ "u.userId, i.image, u.userName, u.email, c.categoryName) " + "FROM Items i " + "LEFT JOIN i.user u "
+			+ "LEFT JOIN Categories c ON c.id = i.categoryId "
 			+ "WHERE (:itemName IS NULL OR LOWER(i.itemName) LIKE LOWER(CONCAT('%', :itemName, '%'))) "
 			+ "AND (:color IS NULL OR LOWER(i.colour) LIKE LOWER(CONCAT('%', :color, '%'))) "
 			+ "AND (:category IS NULL OR LOWER(c.categoryName ) LIKE LOWER(CONCAT('%', :category, '%')))")
 	List<ItemsSearchDTO> searchByItemNameColorAndCategory(@Param("itemName") String itemName,
 			@Param("color") String color, @Param("category") String category);
 
-	List<Items> findByStatusIn(List<String> statuses);
-
-	@Query("SELECT new com.claimit.dto.ItemDTO("
-	        + "i.itemId, i.itemName, i.status, i.receivedDate, u.userId, i.image, "
-	        + "u.userName, u.email, c.categoryName, i.description, i.uniqueId) "
-	        + "FROM Items i "
-	        + "LEFT JOIN i.user u "
-	        + "LEFT JOIN Categories c ON c.id = i.categoryId "
-	        + "WHERE i.status != 'ARCHIVED' "
-	        + "ORDER BY i.itemId DESC")
+	@Query("SELECT new com.claimit.dto.ItemDTO(" + "i.itemId, i.itemName, i.status, i.receivedDate, u.userId, i.image, "
+			+ "u.userName, u.email, c.categoryName, i.description, i.uniqueId) " + "FROM Items i "
+			+ "LEFT JOIN i.user u " + "LEFT JOIN Categories c ON c.id = i.categoryId " + "WHERE i.status != 'ARCHIVED' "
+			+ "ORDER BY i.itemId DESC")
 	List<ItemDTO> findItemsSummary();
-
 
 	@Query("SELECT new com.claimit.dto.ItemDTO(i.itemId, i.itemName, i.status, i.receivedDate, u.userId, i.image, u.userName, u.email, c.categoryName, i.description, i.uniqueId) "
 			+ "FROM Items i " + "LEFT JOIN i.user u " + "LEFT JOIN Categories c ON c.id = i.categoryId "
@@ -48,15 +41,6 @@ public interface ItemsRepo extends JpaRepository<Items, Integer> {
 
 	@Query("UPDATE Items i SET i.status = :status WHERE i.itemId = :itemId")
 	void updateItemStatus(@Param("status") ItemStatus status, @Param("itemId") int itemId);
-
-	@Query("SELECT FUNCTION('DATE_FORMAT', i.receivedDate, '%Y-%m') AS month, " + "COUNT(i) AS totalItems, "
-			+ "COUNT(CASE WHEN i.status = 'UNCLAIMED' THEN 1 END) AS unclaimed, "
-			+ "COUNT(CASE WHEN i.status = 'PENDING_APPROVAL' THEN 1 END) AS pendingApproval, "
-			+ "COUNT(CASE WHEN i.status = 'PENDING_PICKUP' THEN 1 END) AS pendingPickup, "
-			+ "COUNT(CASE WHEN i.status = 'CLAIMED' THEN 1 END) AS claimed, "
-			+ "COUNT(CASE WHEN i.status = 'REJECTED' THEN 1 END) AS rejected " + "FROM Items i "
-			+ "GROUP BY FUNCTION('DATE_FORMAT', i.receivedDate, '%Y-%m')")
-	List<Object[]> findItemsGroupedByMonth();
 
 	@Query("SELECT FUNCTION('DATE_FORMAT', i.receivedDate, '%Y-%m') AS month, " + "COUNT(i) AS totalItems, "
 			+ "COUNT(CASE WHEN i.status = 'UNCLAIMED' THEN 1 END) AS unclaimed, "
@@ -91,4 +75,10 @@ public interface ItemsRepo extends JpaRepository<Items, Integer> {
 			+ "ORDER BY i.receivedDate DESC, i.uniqueId DESC")
 	List<ItemDTO> findItemsByCurrentMonthAndYear();
 
+	@Query("SELECT i FROM Items i WHERE FUNCTION('MONTH', i.expirationDate) = :fromDate "
+			+ "AND FUNCTION('YEAR', i.expirationDate) = :toDate " + "AND i.status = :status")
+	List<Items> findByExpirationMonthAndYearAndStatus(@Param("fromDate") String fromDateStr,
+			@Param("toDate") String toDateStr, @Param("status") ItemStatus status);
+
+	List<Items> findByStatusAndReceivedDateBetween(ItemStatus status, Date fromDate, Date toDate);
 }

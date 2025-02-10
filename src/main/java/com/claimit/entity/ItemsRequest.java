@@ -43,6 +43,54 @@ public class ItemsRequest {
 	@JoinColumn(name = "item_id", nullable = false)
 	private Items item;
 
+	public int getRequestId() {
+		return requestId;
+	}
+
+	public void setRequestId(int requestId) {
+		this.requestId = requestId;
+	}
+
+	public LocalDateTime getClaimedDate() {
+		return claimedDate;
+	}
+
+	public void setClaimedDate(LocalDateTime claimedDate) {
+		this.claimedDate = claimedDate;
+	}
+
+	public String getRejectedReason() {
+		return rejectedReason;
+	}
+
+	public void setRejectedReason(String rejectedReason) {
+		this.rejectedReason = rejectedReason;
+	}
+
+	public ItemStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(ItemStatus status) {
+		this.status = status;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public Items getItem() {
+		return item;
+	}
+
+	public void setItem(Items item) {
+		this.item = item;
+	}
+
 
 
 }

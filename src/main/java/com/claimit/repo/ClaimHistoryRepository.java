@@ -14,9 +14,7 @@ import com.claimit.entity.ClaimHistory;
 
 public interface ClaimHistoryRepository extends JpaRepository<ClaimHistory, Integer> {
 
-	List<ClaimHistory> findByRequest_Item_ItemId(int itemId);
 
-	
 	@Query("SELECT new com.claimit.dto.ClaimHistoryDTO( "
 	        + "ch.claimId, ch.claimDate, ch.claimStatus, i.image, r.requestId, ch.user.id, ch.user.userName, ch.user.email) "
 	        + "FROM ClaimHistory ch "

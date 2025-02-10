@@ -46,4 +46,60 @@ public class User {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
 	@JsonIgnore
 	private List<Items> items;
+
+	public int getUserId() {
+		return userId;
+	}
+
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public boolean isRead() {
+		return isRead;
+	}
+
+	public void setRead(boolean isRead) {
+		this.isRead = isRead;
+	}
+
+	public Organisation getOrganisation() {
+		return organisation;
+	}
+
+	public void setOrganisation(Organisation organisation) {
+		this.organisation = organisation;
+	}
+
+	public List<Items> getItems() {
+		return items;
+	}
+
+	public void setItems(List<Items> items) {
+		this.items = items;
+	}
 }

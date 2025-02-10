@@ -11,7 +11,6 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.claimit.constants.Constants;
@@ -176,10 +175,15 @@ public class ClaimService {
 			ClaimHistory claimHistory = new ClaimHistory();
 			claimHistory.setClaimStatus(claimHistoryDTO.getClaimStatus());
 			claimHistory.setClaimId(claimHistoryDTO.getClaimId());
-			claimHistory.setClaimDate(
-					claimHistoryDTO.getClaimDate() != null ? claimHistoryDTO.getClaimDate() : LocalDateTime.now());
+			LocalDateTime claimDate;
+			if (claimHistoryDTO.getClaimDate() != null) {
+			    claimDate = claimHistoryDTO.getClaimDate();
+			} else {
+			    claimDate = LocalDateTime.now();
+			}
+			claimHistory.setClaimDate(claimDate);
 			claimHistory.setUser(itemsRequest.getUser());
-			claimHistory.setUserEmail(itemsRequest.getUser().getEmail()); // Assuming User has an email field
+			claimHistory.setUserEmail(itemsRequest.getUser().getEmail()); 
 			claimHistory.setRequest(itemsRequest);
 			claimHistory.setItemId(itemsRequest.getItem().getItemId());
 
@@ -299,7 +303,7 @@ public class ClaimService {
 		userData.setMessage(message);
 		userRepository.save(userData);
 
-		emailService.sendClaimConfirmationEmail(user.getEmail(), item);
+		EmailService.sendClaimConfirmationEmail(user.getEmail(), item);
 		emailService.sendClaimNotificationToAdmin(item);
 
 		res.put(Constants.MESSAGE, "Successfully claimed the item.");
@@ -401,6 +405,5 @@ public class ClaimService {
 
 		return response;
 	}
-
 
 }
