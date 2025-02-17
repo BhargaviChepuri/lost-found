@@ -17,9 +17,9 @@ public class Subcategories {
 	private int categoryId;
 	private String status;
 
-//	@ManyToOne
-//	@JoinColumn(name = "category_id", nullable = false)
-//	private Categories category;
+	@ManyToOne
+	@JoinColumn(name = "category_id", nullable = false)
+	private Categories category;
 
 	public int getId() {
 		return id;
@@ -51,6 +51,14 @@ public class Subcategories {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public Categories getCategory() {
+		return category;
+	}
+
+	public void setCategory(Categories category) {
+		this.category = category;
 	}
 
 }

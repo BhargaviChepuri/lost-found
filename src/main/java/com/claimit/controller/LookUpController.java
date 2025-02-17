@@ -1,9 +1,12 @@
 package com.claimit.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +16,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.claimit.entity.Categories;
 import com.claimit.entity.LookUp;
@@ -26,8 +31,11 @@ public class LookUpController {
 
 	private final LookUpService lookUpService;
 
-	public LookUpController(LookUpService lookUpService) {
+	private final ObjectMapper objectMapper;
+
+	public LookUpController(LookUpService lookUpService, ObjectMapper objectMapper) {
 		this.lookUpService = lookUpService;
+		this.objectMapper = objectMapper;
 	}
 
 	/**
@@ -40,33 +48,21 @@ public class LookUpController {
 	 * @return A ResponseEntity with a success message indicating that the data has
 	 *         been inserted.
 	 */
-//	@PostMapping("/add")
-//	public ResponseEntity<List<LookUp>> addCategoriesWithSubcategories(@RequestBody List<LookUp> categories) {
-//		List<LookUp> savedCategories = new ArrayList<>();
-//
-//		for (LookUp category : categories) {
-//			savedCategories.add(lookUpService.addCategoryWithSubcategories(category));
-//		}
-//
-//		return ResponseEntity.ok(savedCategories);
-//	}
 
-	@PostMapping("/add")
-	public ResponseEntity<List<LookUp>> addCategoriesWithSubcategories(@RequestBody Object categories) {
-		List<LookUp> savedCategories = new ArrayList<>();
+	@PostMapping("/addCategory")
+	public ResponseEntity<Map<String, Object>> addCategoryWithSubcategories(
+			@RequestPart("category") String categoryJson,
+			@RequestPart(value = "image", required = false) MultipartFile image) throws IOException {
 
-		if (categories instanceof List) {
-			// Handle multiple category insertion
-			for (LookUp category : (List<LookUp>) categories) {
-				savedCategories.add(lookUpService.addCategoryWithSubcategories(category));
-			}
-		} else if (categories instanceof Map) {
-			// Handle single category insertion
-			LookUp singleCategory = new ObjectMapper().convertValue(categories, LookUp.class);
-			savedCategories.add(lookUpService.addCategoryWithSubcategories(singleCategory));
+		Categories category = objectMapper.readValue(categoryJson, Categories.class);
+
+		if (category.getCategoryName() == null || category.getCategoryName().isBlank()) {
+			Map<String, Object> response = new HashMap<>();
+			response.put("message", "Category name cannot be empty");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 		}
 
-		return ResponseEntity.ok(savedCategories);
+		return lookUpService.addCategoryWithSubcategories(category, image);
 	}
 
 	/**
@@ -81,11 +77,28 @@ public class LookUpController {
 		return lookUpService.getCategories();
 	}
 
+	/**
+	 * This endpoint updates an existing category in the system. The category is
+	 * identified by its id, and the new details are provided in the request body.
+	 * 
+	 * If the category exists, it updates the fields and returns the updated
+	 * category. If the category does not exist, an appropriate error response
+	 * should be returned (handled in lookUpService.updateCategory).
+	 */
+
 	@PutMapping("/categories/{id}")
 	public ResponseEntity<Categories> updateCategory(@PathVariable int id, @RequestBody Categories updatedCategory) {
 		return ResponseEntity.ok(lookUpService.updateCategory(id, updatedCategory));
 	}
 
+	/**
+	 * This endpoint deletes an existing category based on its id.
+	 * 
+	 * The deletion logic might be a soft delete (marking the category as deleted)
+	 * or a hard delete (removing it permanently). The response contains a success
+	 * message and relevant details.
+	 **/
+	
 	@DeleteMapping
 	public ResponseEntity<Map<String, Object>> deleteCategory(@RequestParam int id) {
 		Map<String, Object> response = lookUpService.deleteCategory(id);
@@ -106,6 +119,24 @@ public class LookUpController {
 
 		Map<String, Object> updatedCategory = lookUpService.updateCategory(id, name, status);
 		return ResponseEntity.ok(updatedCategory);
+	}
+
+	@PostMapping("/add")
+	public ResponseEntity<List<LookUp>> addCategoriesWithSubcategories(@RequestBody Object categories) {
+		List<LookUp> savedCategories = new ArrayList<>();
+
+		if (categories instanceof List) {
+			// Handle multiple category insertion
+			for (LookUp category : (List<LookUp>) categories) {
+				savedCategories.add(lookUpService.addCategoryWithSubcategories(category));
+			}
+		} else if (categories instanceof Map) {
+			// Handle single category insertion
+			LookUp singleCategory = new ObjectMapper().convertValue(categories, LookUp.class);
+			savedCategories.add(lookUpService.addCategoryWithSubcategories(singleCategory));
+		}
+
+		return ResponseEntity.ok(savedCategories);
 	}
 
 }

@@ -18,9 +18,10 @@ public class Categories {
 	private String categoryName;
 	private String status;
 	private boolean deleted = false; // Add deleted flag
-	
-//	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Subcategories> subcategories = new ArrayList<>();
+	private byte[] image;
+
+	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Subcategories> subcategories = new ArrayList<>();
 
 	public boolean isDeleted() {
 		return deleted;
@@ -65,4 +66,19 @@ public class Categories {
 		this.status = status;
 	}
 
+	public byte[] getImage() {
+		return image;
+	}
+
+	public void setImage(byte[] image) {
+		this.image = image;
+	}
+
+	public List<Subcategories> getSubcategories() { // **Fix: Define this getter**
+		return subcategories;
+	}
+
+	public void setSubcategories(List<Subcategories> subcategories) {
+		this.subcategories = subcategories;
+	}
 }

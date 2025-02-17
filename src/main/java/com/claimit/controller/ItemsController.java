@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -98,7 +97,7 @@ public class ItemsController {
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_422, description = ClaimConstants.RESPONSE_CODE_422_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_429, description = ClaimConstants.RESPONSE_CODE_429_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_503, description = ClaimConstants.RESPONSE_CODE_503_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))) })
-	@PostMapping("/image")
+	@PostMapping("/preview")
 	public ResponseEntity<Map<String, Object>> uploadImageForPreview(@RequestParam("image") MultipartFile file,
 			@RequestParam(required = false) String orgId) throws IOException {
 		Map<String, Object> labels = itemsService.uploadImageForPreview(file, orgId);
@@ -278,7 +277,7 @@ public class ItemsController {
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_422, description = ClaimConstants.RESPONSE_CODE_422_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_429, description = ClaimConstants.RESPONSE_CODE_429_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_503, description = ClaimConstants.RESPONSE_CODE_503_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))) })
-	@GetMapping("/listOfItems")
+	@GetMapping
 	public Map<String, Object> getItems() {
 		return itemsService.getAllItems();
 	}
@@ -353,6 +352,13 @@ public class ItemsController {
 		}
 	}
 
+	/*****
+	 * This endpoint moves expired items to an archive. It can archive a specific
+	 * item based on the itemId or archive all expired items if itemId is not
+	 * provided. If itemId is provided, it archives only the specified item. If
+	 * itemId is not provided, it archives all expired items.
+	 * 
+	 ***/
 	@ResponseStatus(HttpStatus.OK)
 	@Operation(summary = "retrieve all archived items", responses = {
 			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_200, description = ClaimConstants.RESPONSE_CODE_200_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ItemsService.class))),
@@ -369,6 +375,25 @@ public class ItemsController {
 		return ResponseEntity.ok(items);
 	}
 
+	/**
+	 * This endpoint retrieves archived items within a specified date range. If no
+	 * dates are provided, it returns all archived items. If both fromDate and
+	 * toDate are provided, it fetches archived items within that date range. If
+	 * neither parameter is provided, it returns all archived items. If only
+	 * fromDate is provided, it retrieves items archived from that date onward. If
+	 * only toDate is provided, it retrieves items archived up to that date.
+	 * Parameters: fromDate (Query Parameter) → (Optional) The start date
+	 * (YYYY-MM-DD format) for filtering archived items. toDate (Query Parameter) →
+	 * (Optional) The end date (YYYY-MM-DD format) for filtering archived items.
+	 ***/
+	@ResponseStatus(HttpStatus.OK)
+	@Operation(summary = "retrieve all archived items", responses = {
+			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_200, description = ClaimConstants.RESPONSE_CODE_200_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ItemsService.class))),
+			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_204, description = ClaimConstants.RESPONSE_CODE_204_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
+			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_400, description = ClaimConstants.RESPONSE_CODE_400_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
+			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_422, description = ClaimConstants.RESPONSE_CODE_422_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
+			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_429, description = ClaimConstants.RESPONSE_CODE_429_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))),
+			@ApiResponse(responseCode = ClaimConstants.RESPONSE_CODE_503, description = ClaimConstants.RESPONSE_CODE_503_DESCRIPTION, content = @Content(mediaType = ClaimConstants.MEDIA_TYPE, schema = @Schema(implementation = ErrorDetails.class))) })
 	@PutMapping("/archive-expired")
 	public ResponseEntity<Map<String, Object>> archiveExpiredItems(@RequestParam(required = false) Integer itemId) {
 		Map<String, Object> response = itemsService.archiveExpiredItems(itemId);

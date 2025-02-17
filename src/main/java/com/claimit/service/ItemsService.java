@@ -1182,6 +1182,16 @@ public class ItemsService {
 		}
 	}
 
+	/**
+	 * This method archives an expired item by updating its status to ARCHIVED. It
+	 * only processes a single item at a time and requires an itemId to be provided.
+	 * Checks if itemId is provided If itemId is null, it throws a RuntimeException
+	 * with the message "Item ID must be provided." Finds the item in the database
+	 * If the item exists, updates its status to ARCHIVED and saves it. If the item
+	 * does not exist, it throws a RuntimeException with the message "Item not found
+	 * with ID: {itemId}." Returns a response map with a success message if the
+	 * operation is successful.
+	 ***/
 	public Map<String, Object> archiveExpiredItems(Integer itemId) {
 		Map<String, Object> res = new HashMap<>();
 
